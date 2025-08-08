@@ -50,9 +50,7 @@ def in_cart(request):
     product=Product.objects.get(id=product_id)
 
     exist_in_cart=CartItem.objects.filter(cart=cart,product=product).exists()
-    exist_in_cart_shoppage=CartItem.filter(cart=cart,product=product)
-    serializer=ProductSerializer(exist_in_cart_shoppage)
-    return Response({"product_in_cart":exist_in_cart,"data":serializer.data})
+    return Response({"product_in_cart":exist_in_cart})
 
 @api_view(['GET'])    
 def Fetch_in_cart(request):
