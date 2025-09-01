@@ -164,3 +164,4 @@ PAYPAL_MODE="sandbox"
 
 
 REACT_BASE_URL=os.getenv('REACT_BASE_URL','http://localhost:3000/')
+# allows all domains (okay for testing)

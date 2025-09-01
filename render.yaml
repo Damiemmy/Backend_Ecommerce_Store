@@ -3,5 +3,9 @@ services:
     name: backend-ecommerce-store
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
-    startCommand: "gunicorn ecommerce.wsgi:application"
+    pythonVersion: 3.11.9
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --no-input
+      python manage.py migrate
+    startCommand: "gunicorn your_project.wsgi:application"
