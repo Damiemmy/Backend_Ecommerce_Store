@@ -1,6 +1,6 @@
 services: 
   - type: web
-    name: backend-ecommerce-store
+    name: BuyIt_Backend_Api
     env: python
     plan: free
     pythonVersion: 3.11.9
