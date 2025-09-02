@@ -1,6 +1,6 @@
 services: 
   - type: web
-    name: Backend_App_Ecommerce_Api
+    name: Backend_App_Ecommerce_Apis
     env: python
     plan: free
     pythonVersion: 3.11.9
