@@ -1,6 +1,6 @@
 services: 
   - type: web
-    name: Backend_App_Ecommerce_Apis
+    name: Django_Ecommerce_Backend
     env: python
     plan: free
     pythonVersion: 3.11.9
