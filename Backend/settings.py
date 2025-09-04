@@ -37,6 +37,7 @@ ALLOWED_HOSTS = [
     "django-ecommerce-backend-qyjh.onrender.com",  # your Render backend
     "localhost",   # correct spell
     "127.0.0.1",
+    "backend-ecommerce-store-1.onrender.com",
     "buyit-backend-iml8.onrender.com",   # local loopback
     "[::1]"        # IPv6 localhost (optional but useful)
 ]
