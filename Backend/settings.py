@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import dj_database_url
 
 from datetime import timedelta
 
@@ -96,10 +97,9 @@ WSGI_APPLICATION = 'Backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get("postgresql://ecommercedb_j8g2_user:9UiZqVcmhT5VUZi5JvhwbAk1qJOwQlDO@dpg-d2t2fn0dl3ps7380lmu0-a/ecommercedb_j8g2")
+    )
 }
 
 
