@@ -97,9 +97,12 @@ WSGI_APPLICATION = 'Backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+import os
+import dj_database_url
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get("postgresql://ecommercedb_j8g2_user:9UiZqVcmhT5VUZi5JvhwbAk1qJOwQlDO@dpg-d2t2fn0dl3ps7380lmu0-a/ecommercedb_j8g2")
+    "default": dj_database_url.config(
+        default="sqlite:///db.sqlite3"  # Fallback to SQLite for local development
     )
 }
 
