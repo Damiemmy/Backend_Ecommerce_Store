@@ -5,19 +5,19 @@ from django.utils.text import slugify
 
 # Create your models here.
 class Product(models.Model):
-    CATEGORY=(
-        ("ELECTRONICS","electronics"),
-        ("SKINCARE","skincare"),
-        ("CLOTHINGS","clothings"),
-        ("FOR_MEN","for_men"),
-        ("FOR_WOMEN","for women"),
+    CATEGORY = (
+        ("ELECTRONICS", "electronics"),
+        ("SKINCARE", "skincare"),
+        ("CLOTHINGS", "clothings"),
+        ("FOR_MEN", "for_men"),
+        ("FOR_WOMEN", "for women"),
     )
-    name=models.CharField(max_length=100)
-    image=models.ImageField(upload_to='img')
-    description=models.TextField(blank=True,null=True)
-    slug=models.SlugField(blank=True,null=True,max_length=15)
-    price=models.DecimalField(max_digits=10,decimal_places=2)
-    category=models.CharField(max_length=15,choices=CATEGORY,blank=True,null=True)
+    name = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='img')
+    description = models.TextField(blank=True, null=True)
+    slug = models.SlugField(blank=True, null=True, max_length=255)  # Increased from 15 → 255
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    category = models.CharField(max_length=15, choices=CATEGORY, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -31,36 +31,38 @@ class Product(models.Model):
                 unique_slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = unique_slug
-        super().save(*args,**kwargs)
+        super().save(*args, **kwargs)
+
 
 class Cart(models.Model):
-    cart_code=models.CharField(max_length=11,unique=True)
-    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,null=True,blank=True)
-    paid=models.BooleanField(default=False)
-    created_at=models.DateTimeField(auto_now_add=True, null=True,blank=True)
-    modified_at=models.DateTimeField(auto_now=True, null=True,blank=True)
+    cart_code = models.CharField(max_length=11, unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    modified_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __str__(self):
         return self.cart_code
 
+
 class CartItem(models.Model):
-    cart=models.ForeignKey(Cart,related_name='items',on_delete=models.CASCADE)
-    product=models.ForeignKey(Product,on_delete=models.CASCADE)
-    quantity=models.IntegerField(default=1)
+    cart = models.ForeignKey(Cart, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
 
     def __str__(self):
-        return f"{self.quantity} x {self.product.name} in cart{self.cart.id}"
+        return f"{self.quantity} x {self.product.name} in cart {self.cart.id}"
+
 
 class Transaction(models.Model):
-    ref=models.CharField(max_length=255,unique=True)
-    cart=models.ForeignKey(Cart,related_name="transactions",on_delete=models.CASCADE)
-    amount=models.DecimalField(max_digits=10,decimal_places=2)
-    currency=models.CharField(max_length=10 ,default="NGN")
-    status=models.CharField(max_length=20, default="pending")
-    user=models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,null=True,blank=True)
-    created_at=models.DateTimeField(auto_now_add=True,blank=True,null=True)
-    modified_at=models.DateTimeField(auto_now=True,blank=True,null=True)
+    ref = models.CharField(max_length=255, unique=True)
+    cart = models.ForeignKey(Cart, related_name="transactions", on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=10, default="NGN")
+    status = models.CharField(max_length=20, default="pending")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    modified_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
     def __str__(self):
-        return f"Transaction {self.ref}-{self.status}"
-
+        return f"Transaction {self.ref} - {self.status}"
