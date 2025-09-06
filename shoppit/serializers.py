@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from .models import Product,Cart,CartItem
+from .models import Product,Cart,CartItem,Profile
 from django.contrib.auth import get_user_model
+
+User=get_user_model()
+
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -81,4 +84,96 @@ class UserSerializer(serializers.ModelSerializer):
         serializer=NewCartItemSerializer(cartitems,many=True)
         return serializer.data 
 
+# serializers.py
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from .models import Profile
+from .serializers import NewCartItemSerializer  # if needed elsewhere
 
+User = get_user_model()
+
+class ProfileSerializer(serializers.ModelSerializer):
+    # Expose user fields directly (writable)
+    username    = serializers.CharField(source='user.username', read_only=True)
+    email       = serializers.EmailField(source='user.email', required=False)
+    first_name  = serializers.CharField(source='user.first_name', required=False, allow_blank=True)
+    last_name   = serializers.CharField(source='user.last_name', required=False, allow_blank=True)
+    city        = serializers.CharField(source='user.city', required=False, allow_blank=True)
+    state       = serializers.CharField(source='user.state', required=False, allow_blank=True)
+    address     = serializers.CharField(source='user.address', required=False, allow_blank=True)
+    phone       = serializers.CharField(source='user.phone', required=False, allow_blank=True)
+
+    # Keep your existing nested read-only block if you still want it in responses
+    User_info = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Profile
+        # You can include 'user' (id) if you still need it, otherwise omit
+        fields = [
+            'username',
+            'email', 'first_name', 'last_name',
+            'city', 'state', 'address', 'phone',
+            'image',
+            'User_info',
+        ]
+
+    def get_User_info(self, obj):
+        """
+        Keep this to preserve your old response shape. If you don’t need it,
+        you can remove this method and the field from Meta.
+        """
+        user = obj.user
+        return {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "city": getattr(user, "city", None),
+            "state": getattr(user, "state", None),
+            "address": getattr(user, "address", None),
+            "phone": getattr(user, "phone", None),
+        }
+
+    def update(self, instance, validated_data):
+        """
+        validated_data may contain a nested 'user' dict (from source='user.<field>')
+        and top-level 'image'.
+        """
+        user_data = validated_data.pop('user', {})
+        user = instance.user
+
+        # Update user fields
+        for attr, value in user_data.items():
+            setattr(user, attr, value)
+        user.save()
+
+        # Update profile fields (e.g., image)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+    password2 = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'city', 'state', 'address', 'phone', 'password', 'password2']
+
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError("Passwords do not match.")
+        return data
+
+    def create(self, validated_data):
+        validated_data.pop('password2')
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)  # 🔑 Hash the password
+        user.save()
+        return user
+    

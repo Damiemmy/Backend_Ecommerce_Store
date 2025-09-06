@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
-from .models import Product,Cart,CartItem,Transaction
-from .serializers import ProductSerializer,DetailedProductSerializer,CartItemSerializer,SimpleCartSerializer,CartSerializer,UserSerializer
+from .models import Product,Cart,CartItem,Transaction,Profile
+from .serializers import ProductSerializer,DetailedProductSerializer,CartItemSerializer,ProfileSerializer,SimpleCartSerializer,CartSerializer,UserSerializer,RegisterSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -12,8 +12,12 @@ import requests
 from rest_framework import status
 import paypalrestsdk
 from django.conf import settings
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 BASE_URL=settings.REACT_BASE_URL
+
 paypalrestsdk.configure({
     "mode":settings.PAYPAL_MODE,
     "client_id":settings.PAYPAL_CLIENT_ID,
@@ -313,6 +317,42 @@ def paypal_payment_callback(request):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getuserimg(request):
+    profile=Profile.objects.get(user=request.user)
+    serializer=ProfileSerializer(profile)
+    return Response(serializer.data)
+    
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Anyone should be able to register
+def register_user(request):
+    serializer = RegisterSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET', 'PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser, JSONParser])  # allow image upload + JSON
+def profile_view(request):
+    # Ensure a Profile exists for the user
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    if request.method == 'GET':
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)
+
+    # PUT/PATCH: accepts JSON or multipart (for image)
+    partial = request.method == 'PATCH'
+    serializer = ProfileSerializer(profile, data=request.data, partial=partial)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            "message": "Profile updated successfully",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

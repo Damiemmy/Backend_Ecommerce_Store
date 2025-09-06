@@ -1,8 +1,10 @@
 from django.db import models
 from django.conf import settings
 from django.utils.text import slugify
+from django.db.models.signals import post_save
+from django.contrib.auth import get_user_model
 
-
+User=get_user_model()
 # Create your models here.
 class Product(models.Model):
     CATEGORY = (
@@ -66,3 +68,24 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"Transaction {self.ref} - {self.status}"
+
+class Profile(models.Model):
+    user=models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,null=True, blank=True)
+    image=models.ImageField(upload_to='profile-image',default="profile_image/blank.png" )
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
+def create_user_profile(sender,instance,created,**kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+def save_user_profile(sender,instance,**kwargs):
+    instance.profile.save()
+
+post_save.connect(create_user_profile,sender=User)
+post_save.connect(save_user_profile,sender=User)
+
+
+
+
